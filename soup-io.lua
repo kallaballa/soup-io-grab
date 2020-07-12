@@ -10,6 +10,7 @@ local url_count = 0
 local tries = 0
 local downloaded = {}
 local addedtolist = {}
+local allowed_urls = {}
 local abortgrab = false
 
 local discovered = {}
@@ -30,9 +31,15 @@ read_file = function(file)
 end
 
 allowed = function(url, parenturl)
+  if allowed_urls[url] then
+    return true
+  end
+
   if string.match(url, "'+")
     or string.match(url, "[<>\\\"'%*%$;%^%[%],%(%){}\n]")
-    or string.match(url, "^https?://static%.soup%.io/") then
+    or string.match(url, "^https?://static%.soup%.io/")
+    or string.match(url, "^https?://asset%.soup%.io/.+_[0-9]+%-square%.[a-z0-9A-Z]+$")
+    or string.match(url, "^https?://[^/]+/preview/[0-9]+/[0-9]+$") then
     return false
   end
 
@@ -48,6 +55,9 @@ allowed = function(url, parenturl)
   end
 
   local find = string.match(url, "^https?://([^%.]+%.soup%.io)")
+  if find == nil then
+    find = string.match(url, "^https?://([^/]+)/post/[0-9]+")
+  end
   if find ~= nil then
     discovered[find] = true
   end
@@ -71,7 +81,8 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   local html = urlpos["link_expect_html"]
 
   if string.match(url, "^https?://static%.soup%.io/")
-    or string.match(url, "[<>\\\"'%*%$;%^%[%],%(%){}\n]") then
+    or string.match(url, "[<>\\\"'%*%$;%^%[%],%(%){}\n]")
+    or string.match(url, "^https?://asset%.soup%.io/.+_[0-9]+%-square%.[a-z0-9A-Z]+$") then
     return false
   end
 
@@ -90,10 +101,22 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   
   downloaded[url] = true
 
-  local function check(urla)
+  local function check(urla, force)
+    local a, b = string.match(urla, "^(https?://asset%.soup%.io/asset/[0-9]+/[0-9]+_[0-9a-f]+)_16(%.[a-z0-9A-Z]+)$")
+    if a ~= nil and b ~= nil then
+      force = true
+      check(a .. b, true)
+      check(a .. '_16-square' .. b, true)
+      check(a .. '_24-square' .. b, true)
+      check(a .. '_32-square' .. b, true)
+      check(a .. '_48-square' .. b, true)
+    end
     local origurl = url
     local url = string.match(urla, "^([^#]+)")
     local url_ = string.gsub(string.match(url, "^(.-)%.?$"), "&amp;", "&")
+    if force == true then
+      allowed_urls[url_] = true
+    end
     if (downloaded[url_] ~= true and addedtolist[url_] ~= true)
         and allowed(url_, origurl) then
       table.insert(urls, { url=url_ })
@@ -133,7 +156,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
         or string.match(newurl, "^vine:")
         or string.match(newurl, "^android%-app:")
         or string.match(newurl, "^ios%-app:")
-        or string.match(newurl, "^webcals:")
+        or string.match(newurl, "^webcals?:")
         or string.match(newurl, "^%${")) then
       check(string.match(url, "^(https?://.+/)")..newurl)
     end
