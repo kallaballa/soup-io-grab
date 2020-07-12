@@ -53,7 +53,7 @@ if not WGET_AT:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = '20200712.01'
+VERSION = '20200713.01'
 USER_AGENT = 'Googlebot'
 TRACKER_ID = 'soup-io'
 TRACKER_HOST = 'trackerproxy.meo.ws'
