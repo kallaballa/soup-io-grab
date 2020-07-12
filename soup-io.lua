@@ -63,7 +63,7 @@ allowed = function(url, parenturl)
   end
 
   if parenturl ~= nil
-    and string.match(url, "/post/([0-9]+)/[0-9a-zA-Z_%-]*$") == string.match(parenturl, "/post/([0-9]+)/[0-9a-zA-Z_%-]*$")
+    and string.match(url, "/post/([0-9]+)/[0-9a-zA-Z_%-]*") == string.match(parenturl, "/post/([0-9]+)/[0-9a-zA-Z_%-]*")
     and (string.match(url, "/post/[0-9]+/$") or string.match(url, "/post/[0-9]+/none$")) then
     return false
   end
