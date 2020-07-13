@@ -18,9 +18,9 @@ then
   fi
 fi
 
-if ! zstd --version | grep -q 1.4.4
+if ! zstd --version | grep -q 1.4
 then
-  echo "Need version 1.4.4 of libzstd-dev and zstd"
+  echo "Need version >= 1.4 of libzstd-dev and zstd"
   exit 1
 fi
 
